@@ -8,7 +8,7 @@ const Users = require('../users/users-model');
   }
 */
 function restricted(req, res, next) {
-  if(req.session){
+  if(req.session.user){
     next();
   }else{
     next({status: 401, message: "You shall not pass!"});
@@ -24,9 +24,9 @@ function restricted(req, res, next) {
   }
 */
 async function checkUsernameFree(req, res, next) {
-  let { username } = req.body.username.trim();
-  let users = await Users.findBy({ username });
-  if(users.length === 0){
+  const username = req.body.username.trim();
+  let user = await Users.findBy({ username }).first();
+  if(!user){
     next();
   }else{
     next({status: 422, message: "Username taken"});
@@ -42,11 +42,12 @@ async function checkUsernameFree(req, res, next) {
   }
 */
 async function checkUsernameExists(req, res, next) {
-  let { username } = req.body.username.trim();
-  let users = await Users.findBy({ username });
-  if(users.length === 0){
+  let username = req.body.username.trim();
+  const user = await Users.findBy({ username }).first();
+  if(!user){
     next({status: 401, message: "Invalid credentials"});
   }else{
+    req.user = user;
     next();
   }
 }
@@ -60,8 +61,8 @@ async function checkUsernameExists(req, res, next) {
   }
 */
 function checkPasswordLength(req, res, next) {
-  let { password } = req.body.password.trim();
-  if(!password || password.length <= 3){
+  let password = req.body.password;
+  if(password == null || password.trim().length <= 3){
     next({status: 422, message: "Password must be longer than 3 chars"});
   }else{
     next();

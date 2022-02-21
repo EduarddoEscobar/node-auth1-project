@@ -24,8 +24,11 @@ function findById(user_id) {
   resolves to the newly inserted user { user_id, username }
  */
 async function add(user) {
-  await db('users').insert(user);
-  return user
+  let [user_id] = await db('users').insert(user);
+  return {
+    user_id,
+    username: user.username
+  }
 }
 
 // Don't forget to add these to the `exports` object so they can be required in other modules
